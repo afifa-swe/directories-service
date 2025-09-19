@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\BudgetHolder;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreBudgetHolderRequest;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\BudgetHolderImport;
+use Illuminate\Support\Facades\Log;
 
 class BudgetHolderController extends Controller
 {
@@ -103,5 +106,35 @@ class BudgetHolderController extends Controller
             'timestamp' => now()->toIso8601String(),
             'success' => true,
         ]);
+    }
+
+    /**
+     * Import budget holders from an Excel file.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        try {
+            Excel::queueImport(new BudgetHolderImport, $request->file('file'));
+
+            return response()->json([
+                'message' => 'Импорт запущен',
+                'data' => [],
+                'timestamp' => now()->toIso8601String(),
+                'success' => true,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('BudgetHolder import failed to queue', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'message' => 'Ошибка при запуске импорта',
+                'data' => [],
+                'timestamp' => now()->toIso8601String(),
+                'success' => false,
+            ], 500);
+        }
     }
 }

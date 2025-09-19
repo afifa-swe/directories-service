@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Default Queue Connection Name
@@ -29,7 +28,6 @@ return [
     */
 
     'connections' => [
-
         'sync' => [
             'driver' => 'sync',
         ],
@@ -40,6 +38,68 @@ return [
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
             'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
+            'after_commit' => false,
+        ],
+
+        'rabbitmq' => [
+            'driver' => 'rabbitmq',
+
+            // Lazy connection class to avoid connecting on every request
+            'connection' => PhpAmqpLib\Connection\AMQPLazyConnection::class,
+
+            'hosts' => [
+                [
+                    'host' => env('RABBITMQ_HOST', 'rabbitmq'),
+                    'port' => env('RABBITMQ_PORT', 5672),
+                    'user' => env('RABBITMQ_USER', 'guest'),
+                    'password' => env('RABBITMQ_PASSWORD', 'guest'),
+                    'vhost' => env('RABBITMQ_VHOST', '/'),
+                ],
+            ],
+
+            // Name of the queue to use
+            'queue' => env('RABBITMQ_QUEUE', 'default'),
+
+            // Optional: connection options
+            'options' => [
+                'ssl_options' => [
+                    'cafile' => env('RABBITMQ_SSL_CAFILE', null),
+                    'local_cert' => env('RABBITMQ_SSL_LOCALCERT', null),
+                    'local_key' => env('RABBITMQ_SSL_LOCALKEY', null),
+                    'verify_peer' => env('RABBITMQ_SSL_VERIFY_PEER', true),
+                    'passphrase' => env('RABBITMQ_SSL_PASSPHRASE', null),
+                ],
+
+                'exchange' => [
+                    'name' => env('RABBITMQ_EXCHANGE_NAME', null),
+                    'declare' => true,
+                    'type' => env('RABBITMQ_EXCHANGE_TYPE', 'direct'),
+                    'passive' => false,
+                    'durable' => true,
+                    'auto_delete' => false,
+                ],
+
+                'queue' => [
+                    'prioritize_delayed' => false,
+                    'queue_max_priority' => env('RABBITMQ_QUEUE_MAX_PRIORITY', 10),
+                ],
+
+                // map the job class used by the package
+                'job' => \Illuminate\Queue\Jobs\RabbitMQJob::class,
+            ],
+
+            // Worker name (optional)
+            'worker' => env('RABBITMQ_WORKER', 'default'),
+
+            'ssl_params' => [
+                'ssl_on' => false,
+                'cafile' => null,
+                'local_cert' => null,
+                'local_key' => null,
+                'verify_peer' => true,
+                'passphrase' => null,
+            ],
+
             'after_commit' => false,
         ],
 
@@ -71,7 +131,6 @@ return [
             'block_for' => null,
             'after_commit' => false,
         ],
-
     ],
 
     /*
@@ -108,5 +167,4 @@ return [
         'database' => env('DB_CONNECTION', 'sqlite'),
         'table' => 'failed_jobs',
     ],
-
 ];

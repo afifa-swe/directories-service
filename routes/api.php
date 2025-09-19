@@ -7,5 +7,10 @@ use App\Http\Controllers\BudgetHolderController;
 use App\Http\Controllers\TreasuryAccountController;
 
 Route::apiResource('swift', SwiftCodeController::class);
+Route::post('swift/import', [SwiftCodeController::class, 'import']);
+
 Route::apiResource('budget-holders', BudgetHolderController::class);
+Route::post('budget-holders/import', [BudgetHolderController::class, 'import']);
+
 Route::apiResource('treasury-accounts', TreasuryAccountController::class);
+Route::post('treasury-accounts/import', [TreasuryAccountController::class, 'import']);

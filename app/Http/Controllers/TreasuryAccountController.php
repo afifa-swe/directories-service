@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\TreasuryAccount;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreTreasuryAccountRequest;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\TreasuryAccountImport;
+use Illuminate\Support\Facades\Log;
 
 class TreasuryAccountController extends Controller
 {
@@ -102,5 +105,35 @@ class TreasuryAccountController extends Controller
             'timestamp' => now()->toIso8601String(),
             'success' => true,
         ]);
+    }
+
+    /**
+     * Import treasury accounts from an Excel file.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        try {
+            Excel::queueImport(new TreasuryAccountImport, $request->file('file'));
+
+            return response()->json([
+                'message' => 'Импорт запущен',
+                'data' => [],
+                'timestamp' => now()->toIso8601String(),
+                'success' => true,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('TreasuryAccount import failed to queue', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'message' => 'Ошибка при запуске импорта',
+                'data' => [],
+                'timestamp' => now()->toIso8601String(),
+                'success' => false,
+            ], 500);
+        }
     }
 }

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\SwiftCode;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreSwiftCodeRequest;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\SwiftCodeImport;
+use Illuminate\Support\Facades\Log;
 
 class SwiftCodeController extends Controller
 {
@@ -102,5 +105,35 @@ class SwiftCodeController extends Controller
             'timestamp' => now()->toIso8601String(),
             'success' => true,
         ]);
+    }
+
+    /**
+     * Import swift codes from an Excel file.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:5120',
+        ]);
+
+        try {
+            Excel::queueImport(new SwiftCodeImport, $request->file('file'));
+
+            return response()->json([
+                'message' => 'Импорт запущен',
+                'data' => [],
+                'timestamp' => now()->toIso8601String(),
+                'success' => true,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Swift import failed to queue', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'message' => 'Ошибка при запуске импорта',
+                'data' => [],
+                'timestamp' => now()->toIso8601String(),
+                'success' => false,
+            ], 500);
+        }
     }
 }
