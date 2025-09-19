@@ -19,5 +19,11 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        $this->call([
+            SwiftCodeSeeder::class,
+            BudgetHolderSeeder::class,
+            TreasuryAccountSeeder::class,
+        ]);
     }
 }
