@@ -11,12 +11,36 @@ class SwiftCodeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = SwiftCode::paginate(25);
+        $allowedSorts = ['swift_code', 'bank_name', 'country', 'city', 'created_at'];
+        $sort = $request->get('sort', 'created_at');
+        if (!in_array($sort, $allowedSorts)) {
+            $sort = 'created_at';
+        }
+
+        $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $items = SwiftCode::query()
+            ->when($request->search, function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $term = "%{$request->search}%";
+                    $sub->where('bank_name', 'ilike', $term)
+                        ->orWhere('address', 'ilike', $term)
+                        ->orWhere('country', 'ilike', $term)
+                        ->orWhere('city', 'ilike', $term)
+                        ->orWhere('swift_code', 'ilike', $term);
+                });
+            })
+            ->when($request->filled('country'), fn($q) => $q->where('country', $request->country))
+            ->when($request->filled('city'), fn($q) => $q->where('city', $request->city))
+            ->when($request->filled('bank_name'), fn($q) => $q->where('bank_name', $request->bank_name))
+            ->orderBy($sort, $direction)
+            ->paginate($request->get('per_page', 20));
+
         return response()->json([
             'message' => 'Успешно',
-            'data' => $data,
+            'data' => $items,
             'timestamp' => now()->toIso8601String(),
             'success' => true,
         ]);
