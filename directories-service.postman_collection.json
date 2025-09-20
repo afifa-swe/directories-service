@@ -276,6 +276,25 @@
           "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
         }
       ]
+    },
+    {
+      "name": "POST /oauth/token",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"grant_type\": \"client_credentials\",\n  \"client_id\": \"01996711-d8be-7072-8797-b63f9c0e3e42\",\n  \"client_secret\": \"pUct87lw0mFoi4g4dirziBQcEKhQDRDzItJqeOU8\",\n  \"scope\": \"*\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/oauth/token",
+          "host": ["{{baseUrl}}"],
+          "path": ["oauth", "token"]
+        }
+      },
+      "response": []
     }
   ]
 }
