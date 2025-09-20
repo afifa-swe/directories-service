@@ -65,17 +65,17 @@ services:
             - rabbitmq-data:/var/lib/rabbitmq
 
     minio:
-        image: minio/minio:latest
+        image: minio/minio
         container_name: directories_minio
         environment:
-            MINIO_ROOT_USER: minioadmin
-            MINIO_ROOT_PASSWORD: minioadmin
+            MINIO_ROOT_USER: minio
+            MINIO_ROOT_PASSWORD: minio123
         command: server /data --console-address ":9001"
         ports:
             - "9010:9000"
             - "9011:9001"
         volumes:
-            - minio-data:/data
+            - ./storage/minio:/data
 
 volumes:
     db-data:

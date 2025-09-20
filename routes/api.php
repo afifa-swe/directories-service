@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SwiftCodeController;
 use App\Http\Controllers\BudgetHolderController;
 use App\Http\Controllers\TreasuryAccountController;
+use App\Http\Controllers\FileUploadController;
+
+// Public endpoint for quick MinIO testing (no auth)
+Route::post('/upload', [FileUploadController::class, 'store']);
 
 Route::middleware(['auth:api', \App\Http\Middleware\PassportClientOrUser::class])->group(function () {
     Route::apiResource('swift', SwiftCodeController::class);
@@ -15,4 +19,7 @@ Route::middleware(['auth:api', \App\Http\Middleware\PassportClientOrUser::class]
 
     Route::apiResource('treasury-accounts', TreasuryAccountController::class);
     Route::post('treasury-accounts/import', [TreasuryAccountController::class, 'import']);
+
+    // keep upload in protected group as well if needed
+    // Route::post('/upload', [FileUploadController::class, 'store']);
 });
