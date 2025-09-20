@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Laravel\Passport\Passport;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -23,10 +22,7 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // In this version of Passport the routes are registered by the
-        // Laravel\Passport\PassportServiceProvider automatically. Calling
-        // Passport::routes() is not available and causes a fatal error.
-        // If you want to disable automatic route registration, call:
-        // Passport::ignoreRoutes();
+        // Passport routes are registered automatically by the package in this version.
+        // Do NOT call Passport::routes() here (legacy call removed in newer Passport releases).
     }
 }

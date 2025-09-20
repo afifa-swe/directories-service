@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Passport Guard
@@ -11,9 +10,11 @@ return [
     | authenticating users. This value should correspond with one of your
     | guards that is already present in your "auth" configuration file.
     |
+    | Setting this to 'api' which uses TokenGuard. Do not confuse with 'web'
+    |
     */
 
-    'guard' => 'web',
+    'guard' => env('PASSPORT_GUARD', 'api'),
 
     /*
     |--------------------------------------------------------------------------
@@ -42,5 +43,4 @@ return [
     */
 
     'connection' => env('PASSPORT_CONNECTION'),
-
 ];
