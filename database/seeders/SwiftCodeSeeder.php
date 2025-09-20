@@ -2,22 +2,45 @@
 
 namespace Database\Seeders;
 
-use App\Models\SwiftCode;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Faker\Factory as FakerFactory;
 
 class SwiftCodeSeeder extends Seeder
 {
     public function run()
     {
-        $total = 100000;
-        $batch = 2000; // insert in batches to reduce memory usage
+        $faker = FakerFactory::create('en_US');
 
-        for ($i = 0; $i < $total; $i += $batch) {
-            $count = min($batch, $total - $i);
-            SwiftCode::factory()->count($count)->create();
-            if ($this->command) {
-                $this->command->info("SwiftCode seeded " . ($i + $count) . " / $total");
+        $total = 100000; // number of records to create
+        $chunk = 1000; // insert chunk size
+
+        for ($i = 0; $i < $total; $i += $chunk) {
+            $batch = [];
+            $limit = min($chunk, $total - $i);
+
+            for ($j = 0; $j < $limit; $j++) {
+                $id = Str::uuid()->toString();
+                $now = now();
+
+                $batch[] = [
+                    'id' => $id,
+                    'swift_code' => strtoupper($faker->bothify('????' . $faker->numberBetween(100, 999))),
+                    'bank_name' => $faker->company,
+                    'country' => $faker->country,
+                    'city' => $faker->city,
+                    'address' => $faker->address,
+                    'created_by' => Str::uuid()->toString(),
+                    'updated_by' => Str::uuid()->toString(),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
             }
+
+            DB::table('swift_codes')->insert($batch);
+            // free memory
+            unset($batch);
         }
     }
 }

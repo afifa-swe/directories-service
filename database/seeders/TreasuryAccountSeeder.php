@@ -2,22 +2,44 @@
 
 namespace Database\Seeders;
 
-use App\Models\TreasuryAccount;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Faker\Factory as FakerFactory;
 
 class TreasuryAccountSeeder extends Seeder
 {
     public function run()
     {
-        $total = 110000;
-        $batch = 2000;
+        $faker = FakerFactory::create('en_US');
 
-        for ($i = 0; $i < $total; $i += $batch) {
-            $count = min($batch, $total - $i);
-            TreasuryAccount::factory()->count($count)->create();
-            if ($this->command) {
-                $this->command->info("TreasuryAccount seeded " . ($i + $count) . " / $total");
+        $total = 100000;
+        $chunk = 1000;
+
+        for ($i = 0; $i < $total; $i += $chunk) {
+            $batch = [];
+            $limit = min($chunk, $total - $i);
+
+            for ($j = 0; $j < $limit; $j++) {
+                $id = Str::uuid()->toString();
+                $now = now();
+
+                $batch[] = [
+                    'id' => $id,
+                    'account' => $faker->bankAccountNumber(),
+                    'mfo' => $faker->numerify('######'),
+                    'name' => $faker->company,
+                    'department' => $faker->companySuffix,
+                    'currency' => $faker->currencyCode,
+                    'created_by' => Str::uuid()->toString(),
+                    'updated_by' => Str::uuid()->toString(),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
             }
+
+            DB::table('treasury_accounts')->insert($batch);
+            unset($batch);
         }
     }
 }
