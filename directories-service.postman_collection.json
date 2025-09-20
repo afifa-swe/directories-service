@@ -1,0 +1,212 @@
+{
+  "info": {
+    "name": "Directories Service API",
+    "description": "Postman collection for Directories microservice (protected by Passport client_credentials).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "SWIFT-коды",
+      "item": [
+        {
+          "name": "GET /api/swift",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/swift", "host": ["{{baseUrl}}"], "path": ["api", "swift"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": [
+                "pm.test(\"Формат ответа корректен\", function () {",
+                "  const res = pm.response.json();",
+                "  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);",
+                "});"
+              ], "type": "text/javascript" }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/swift/{id}",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/swift/:id", "host": ["{{baseUrl}}"], "path": ["api", "swift", ":id"], "variable": [{ "key": "id", "value": "" }] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "POST /api/swift",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"swift_code\": \"TESTUZ22\",\n  \"bank_name\": \"Test Bank\",\n  \"country\": \"UZ\",\n  \"city\": \"Tashkent\",\n  \"address\": \"Main Street\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/swift", "host": ["{{baseUrl}}"], "path": ["api", "swift"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "PUT /api/swift/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"bank_name\": \"Updated Bank\",\n  \"address\": \"Updated Address\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/swift/:id", "host": ["{{baseUrl}}"], "path": ["api", "swift", ":id"], "variable": [{ "key": "id", "value": "" }] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "DELETE /api/swift/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/swift/:id", "host": ["{{baseUrl}}"], "path": ["api", "swift", ":id"], "variable": [{ "key": "id", "value": "" }] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "POST /api/swift/import",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "" } ] },
+            "url": { "raw": "{{baseUrl}}/api/swift/import", "host": ["{{baseUrl}}"], "path": ["api", "swift", "import"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        }
+      ]
+    },
+    {
+      "name": "Бюджетополучатели",
+      "item": [
+        {
+          "name": "GET /api/budget-holders",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/budget-holders", "host": ["{{baseUrl}}"], "path": ["api", "budget-holders"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "GET /api/budget-holders/{id}",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/budget-holders/:id", "host": ["{{baseUrl}}"], "path": ["api", "budget-holders", ":id"], "variable": [{ "key": "id", "value": "" }] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "POST /api/budget-holders",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"tin\": \"123456789\",\n  \"name\": \"Test Org\",\n  \"region\": \"Tashkent\",\n  \"district\": \"Chilonzor\",\n  \"address\": \"Addr 1\",\n  \"phone\": \"+998901234567\",\n  \"responsible\": \"Ivanov\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/budget-holders", "host": ["{{baseUrl}}"], "path": ["api", "budget-holders"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "PUT /api/budget-holders/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{ \"name\": \"Updated Org\" }" },
+            "url": { "raw": "{{baseUrl}}/api/budget-holders/:id", "host": ["{{baseUrl}}"], "path": ["api", "budget-holders", ":id"], "variable": [{ "key": "id", "value": "" }] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "DELETE /api/budget-holders/{id}",
+          "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": { "raw": "{{baseUrl}}/api/budget-holders/:id", "host": ["{{baseUrl}}"], "path": ["api", "budget-holders", ":id"], "variable": [{ "key": "id", "value": "" }] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "POST /api/budget-holders/import",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "" } ] },
+            "url": { "raw": "{{baseUrl}}/api/budget-holders/import", "host": ["{{baseUrl}}"], "path": ["api", "budget-holders", "import"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        }
+      ]
+    },
+    {
+      "name": "Счета казначейства",
+      "item": [
+        {
+          "name": "GET /api/treasury-accounts",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": { "raw": "{{baseUrl}}/api/treasury-accounts", "host": ["{{baseUrl}}"], "path": ["api", "treasury-accounts"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "GET /api/treasury-accounts/{id}",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": { "raw": "{{baseUrl}}/api/treasury-accounts/:id", "host": ["{{baseUrl}}"], "path": ["api", "treasury-accounts", ":id"], "variable": [{ "key": "id", "value": "" }] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "POST /api/treasury-accounts",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"account\": \"ACC999\",\n  \"mfo\": \"003\",\n  \"name\": \"New Treasury\",\n  \"department\": \"Finance\",\n  \"currency\": \"USD\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/treasury-accounts", "host": ["{{baseUrl}}"], "path": ["api", "treasury-accounts"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "PUT /api/treasury-accounts/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{ \"name\": \"Updated Treasury\" }" },
+            "url": { "raw": "{{baseUrl}}/api/treasury-accounts/:id", "host": ["{{baseUrl}}"], "path": ["api", "treasury-accounts", ":id"], "variable": [{ "key": "id", "value": "" }] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "DELETE /api/treasury-accounts/{id}",
+          "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ], "url": { "raw": "{{baseUrl}}/api/treasury-accounts/:id", "host": ["{{baseUrl}}"], "path": ["api", "treasury-accounts", ":id"], "variable": [{ "key": "id", "value": "" }] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "POST /api/treasury-accounts/import",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "" } ] },
+            "url": { "raw": "{{baseUrl}}/api/treasury-accounts/import", "host": ["{{baseUrl}}"], "path": ["api", "treasury-accounts", "import"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"Формат ответа корректен\", function () {","  const res = pm.response.json();","  pm.expect(res).to.have.keys(['message', 'data', 'timestamp', 'success']);","});"], "type": "text/javascript" } }]
+        }
+      ]
+    }
+  ]
+}
