@@ -6,6 +6,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Console\Commands\TestQueueCommand;
 use App\Console\Commands\DeclareImportsQueue;
+use App\Console\Commands\GenerateMassData;
 
 class Kernel extends ConsoleKernel
 {
@@ -17,6 +18,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         TestQueueCommand::class,
         DeclareImportsQueue::class,
+        GenerateMassData::class,
     ];
 
     /**
