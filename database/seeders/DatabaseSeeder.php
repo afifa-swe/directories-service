@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             SwiftCodeSeeder::class,
             BudgetHolderSeeder::class,
             TreasuryAccountSeeder::class,
+            \Database\Seeders\SetupQueueSeeder::class,
         ]);
     }
 }

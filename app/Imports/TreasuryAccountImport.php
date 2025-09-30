@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Row;
 
 class TreasuryAccountImport implements OnEachRow, WithChunkReading, WithHeadingRow, ShouldQueue
 {
-    public $queue = 'default';
+    public $queue = 'imports';
 
     public function onRow(Row $row)
     {
