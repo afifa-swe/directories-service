@@ -107,11 +107,14 @@
           "name": "POST /api/swift/import — Импорт (защищён)",
           "request": {
             "method": "POST",
-            "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
-            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "" } ] },
-            "url": { "raw": "{{baseUrl}}/api/swift/import", "host": ["{{baseUrl}}"], "path": ["api", "swift", "import"] }
-          }
-        ,
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "test_swift.csv" } ] },
+            "url": { "raw": "{{baseUrl}}/api/swift/import", "host": ["{{baseUrl}}"], "path": ["api", "swift", "import"] },
+            "description": "Curl example:\n\ncurl -X POST '{{baseUrl}}/api/swift/import' -H 'Authorization: Bearer {ACCESS_TOKEN}' -H 'Accept: application/json' -F 'file=@/path/to/test_swift.csv'"
+          },
           "event": [
             {
               "listen": "test",
@@ -182,11 +185,14 @@
           "name": "POST /api/budget-holders/import — Импорт (защищён)",
           "request": {
             "method": "POST",
-            "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
-            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "" } ] },
-            "url": { "raw": "{{baseUrl}}/api/budget-holders/import", "host": ["{{baseUrl}}"], "path": ["api", "budget-holders", "import"] }
-          }
-        ,
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "test_beneficiaries.csv" } ] },
+            "url": { "raw": "{{baseUrl}}/api/beneficiaries/import", "host": ["{{baseUrl}}"], "path": ["api", "beneficiaries", "import"] },
+            "description": "Curl example:\n\ncurl -X POST '{{baseUrl}}/api/beneficiaries/import' -H 'Authorization: Bearer {ACCESS_TOKEN}' -H 'Accept: application/json' -F 'file=@/path/to/test_beneficiaries.csv'"
+          },
           "event": [
             {
               "listen": "test",
@@ -257,11 +263,14 @@
           "name": "POST /api/treasury-accounts/import — Импорт (защищён)",
           "request": {
             "method": "POST",
-            "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
-            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "" } ] },
-            "url": { "raw": "{{baseUrl}}/api/treasury-accounts/import", "host": ["{{baseUrl}}"], "path": ["api", "treasury-accounts", "import"] }
-          }
-        ,
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "test_treasury.csv" } ] },
+            "url": { "raw": "{{baseUrl}}/api/treasury/import", "host": ["{{baseUrl}}"], "path": ["api", "treasury", "import"] },
+            "description": "Curl example:\n\ncurl -X POST '{{baseUrl}}/api/treasury/import' -H 'Authorization: Bearer {ACCESS_TOKEN}' -H 'Accept: application/json' -F 'file=@/path/to/test_treasury.csv'"
+          },
           "event": [
             {
               "listen": "test",

@@ -1,0 +1,4 @@
+account_number,account_name,bank_name,balance,currency,region
+4001234567890012,Main Treasury Account,National Bank,1500000,UZS,Tashkent
+4001234567890013,Development Fund Account,People's Bank,750000,USD,Samarqand
+4001234567890014,Emergency Reserve Fund,Asaka Bank,320000,EUR,Bukhara
