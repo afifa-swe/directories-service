@@ -29,8 +29,7 @@ class StoreTreasuryAccountRequest extends FormRequest
             'name' => 'required|string',
             'department' => 'required|string',
             'currency' => 'required|string',
-            'created_by' => 'nullable|uuid',
-            'updated_by' => 'nullable|uuid',
+            // created_by/updated_by устанавливаются автоматически
         ];
     }
 

@@ -25,6 +25,7 @@ class TreasuryAccountController extends Controller
         $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         $query = TreasuryAccount::query()
+            ->when(auth()->check(), fn($q) => $q->where('created_by', auth()->id()))
             ->when($request->search, function ($q) use ($request) {
                 $term = "%{$request->search}%";
                 $q->where(function ($sub) use ($term) {
@@ -54,7 +55,12 @@ class TreasuryAccountController extends Controller
      */
     public function store(StoreTreasuryAccountRequest $request)
     {
-        $model = TreasuryAccount::create($request->validated());
+        $data = $request->validated();
+        if (auth()->check()) {
+            $data['created_by'] = auth()->id();
+            $data['updated_by'] = auth()->id();
+        }
+        $model = TreasuryAccount::create($data);
 
         return response()->json([
             'message' => 'Успешно',
@@ -69,6 +75,9 @@ class TreasuryAccountController extends Controller
      */
     public function show(TreasuryAccount $treasuryAccount)
     {
+        if (auth()->check() && $treasuryAccount->created_by !== auth()->id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
         return response()->json([
             'message' => 'Успешно',
             'data' => $treasuryAccount,
@@ -82,7 +91,16 @@ class TreasuryAccountController extends Controller
      */
     public function update(StoreTreasuryAccountRequest $request, TreasuryAccount $treasuryAccount)
     {
-        $treasuryAccount->update($request->validated());
+        if (auth()->check() && $treasuryAccount->created_by !== auth()->id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
+
+        $data = $request->validated();
+        if (auth()->check()) {
+            $data['updated_by'] = auth()->id();
+        }
+
+        $treasuryAccount->update($data);
 
         return response()->json([
             'message' => 'Успешно',
@@ -97,6 +115,10 @@ class TreasuryAccountController extends Controller
      */
     public function destroy(TreasuryAccount $treasuryAccount)
     {
+        if (auth()->check() && $treasuryAccount->created_by !== auth()->id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
+
         $treasuryAccount->delete();
 
         return response()->json([

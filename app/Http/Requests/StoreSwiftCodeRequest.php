@@ -30,8 +30,6 @@ class StoreSwiftCodeRequest extends FormRequest
             'country' => 'required|string',
             'city' => 'required|string',
             'address' => 'required|string',
-            'created_by' => 'nullable|uuid',
-            'updated_by' => 'nullable|uuid',
         ];
     }
 

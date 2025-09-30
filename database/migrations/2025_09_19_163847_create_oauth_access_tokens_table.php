@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('oauth_access_tokens', function (Blueprint $table) {
             $table->char('id', 80)->primary();
-            $table->foreignId('user_id')->nullable()->index();
+            // users table uses uuid primary key (string), keep user_id as string UUID
+            $table->string('user_id', 36)->nullable()->index();
             $table->foreignUuid('client_id');
             $table->string('name')->nullable();
             $table->text('scopes')->nullable();

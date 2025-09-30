@@ -31,8 +31,7 @@ class StoreBudgetHolderRequest extends FormRequest
             'address' => 'required|string',
             'phone' => 'required|string',
             'responsible' => 'required|string',
-            'created_by' => 'nullable|uuid',
-            'updated_by' => 'nullable|uuid',
+            // created_by/updated_by устанавливаются автоматически
         ];
     }
 

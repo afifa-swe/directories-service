@@ -25,6 +25,7 @@ class SwiftCodeController extends Controller
         $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         $items = SwiftCode::query()
+            ->when(auth()->check(), fn($q) => $q->where('created_by', auth()->id()))
             ->when($request->search, function ($q) use ($request) {
                 $q->where(function ($sub) use ($request) {
                     $term = "%{$request->search}%";
@@ -54,7 +55,14 @@ class SwiftCodeController extends Controller
      */
     public function store(StoreSwiftCodeRequest $request)
     {
-        $model = SwiftCode::create($request->validated());
+        $data = $request->validated();
+        // ensure owner is current user
+        if (auth()->check()) {
+            $data['created_by'] = auth()->id();
+            $data['updated_by'] = auth()->id();
+        }
+
+        $model = SwiftCode::create($data);
 
         return response()->json([
             'message' => 'Успешно',
@@ -69,6 +77,9 @@ class SwiftCodeController extends Controller
      */
     public function show(SwiftCode $swift)
     {
+        if (auth()->check() && $swift->created_by !== auth()->id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
         return response()->json([
             'message' => 'Успешно',
             'data' => $swift,
@@ -82,7 +93,16 @@ class SwiftCodeController extends Controller
      */
     public function update(StoreSwiftCodeRequest $request, SwiftCode $swift)
     {
-        $swift->update($request->validated());
+        if (auth()->check() && $swift->created_by !== auth()->id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
+
+        $data = $request->validated();
+        if (auth()->check()) {
+            $data['updated_by'] = auth()->id();
+        }
+
+        $swift->update($data);
 
         return response()->json([
             'message' => 'Успешно',
@@ -97,6 +117,10 @@ class SwiftCodeController extends Controller
      */
     public function destroy(SwiftCode $swift)
     {
+        if (auth()->check() && $swift->created_by !== auth()->id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
+
         $swift->delete();
 
         return response()->json([

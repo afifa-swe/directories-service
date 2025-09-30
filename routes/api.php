@@ -10,6 +10,10 @@ use App\Http\Controllers\FileUploadController;
 // Public endpoint for quick MinIO testing (no auth)
 Route::post('/upload', [FileUploadController::class, 'store']);
 
+// Authentication endpoints (public)
+Route::post('/register', [\App\Http\Controllers\Auth\RegisterController::class, 'register']);
+Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login']);
+
 // Debug endpoint (public) - returns raw Authorization header and extracted token.
 // Use this to verify Postman / curl send token without surrounding quotes or extra chars.
 Route::get('/auth-check', function (Request $request) {
@@ -24,7 +28,7 @@ Route::get('/auth-check', function (Request $request) {
     ]);
 });
 
-Route::middleware([\App\Http\Middleware\PassportClientOrUser::class])->group(function () {
+Route::middleware(['auth:api'])->group(function () {
     Route::apiResource('swift', SwiftCodeController::class);
     Route::post('swift/import', [SwiftCodeController::class, 'import']);
 

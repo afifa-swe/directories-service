@@ -25,6 +25,7 @@ class BudgetHolderController extends Controller
         $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         $query = BudgetHolder::query()
+            ->when(auth()->check(), fn($q) => $q->where('created_by', auth()->id()))
             ->when($request->search, function ($q) use ($request) {
                 $term = "%{$request->search}%";
                 $q->where(function ($sub) use ($term) {
@@ -55,7 +56,12 @@ class BudgetHolderController extends Controller
      */
     public function store(StoreBudgetHolderRequest $request)
     {
-        $model = BudgetHolder::create($request->validated());
+        $data = $request->validated();
+        if (auth()->check()) {
+            $data['created_by'] = auth()->id();
+            $data['updated_by'] = auth()->id();
+        }
+        $model = BudgetHolder::create($data);
 
         return response()->json([
             'message' => 'Успешно',
@@ -70,6 +76,9 @@ class BudgetHolderController extends Controller
      */
     public function show(BudgetHolder $budgetHolder)
     {
+        if (auth()->check() && $budgetHolder->created_by !== auth()->id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
         return response()->json([
             'message' => 'Успешно',
             'data' => $budgetHolder,
@@ -83,7 +92,16 @@ class BudgetHolderController extends Controller
      */
     public function update(StoreBudgetHolderRequest $request, BudgetHolder $budgetHolder)
     {
-        $budgetHolder->update($request->validated());
+        if (auth()->check() && $budgetHolder->created_by !== auth()->id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
+
+        $data = $request->validated();
+        if (auth()->check()) {
+            $data['updated_by'] = auth()->id();
+        }
+
+        $budgetHolder->update($data);
 
         return response()->json([
             'message' => 'Успешно',
@@ -98,6 +116,10 @@ class BudgetHolderController extends Controller
      */
     public function destroy(BudgetHolder $budgetHolder)
     {
+        if (auth()->check() && $budgetHolder->created_by !== auth()->id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
+
         $budgetHolder->delete();
 
         return response()->json([

@@ -46,8 +46,11 @@ return new class extends Migration
             $table->unique('uuid', 'users_uuid_unique');
         });
 
-        // Set uuid column NOT NULL (raw statement kept for portability)
-        DB::statement('ALTER TABLE users ALTER COLUMN uuid SET NOT NULL');
+        // Set uuid column NOT NULL where supported (skip for sqlite)
+        $driver = Schema::getConnection()->getDriverName();
+        if (!in_array($driver, ['pgsql'])) {
+            DB::statement('ALTER TABLE users ALTER COLUMN uuid SET NOT NULL');
+        }
     }
 
     /**

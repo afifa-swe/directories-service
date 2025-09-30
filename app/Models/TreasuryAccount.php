@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\HasOwner;
 use Illuminate\Support\Str;
 
 class TreasuryAccount extends Model
 {
     use HasFactory;
+    use HasOwner;
 
     protected $table = 'treasury_accounts';
 
