@@ -140,7 +140,8 @@ class BudgetHolderController extends Controller
         ]);
 
         try {
-            Excel::queueImport(new BudgetHolderImport, $request->file('file'));
+            $userId = auth()->check() ? auth()->id() : null;
+            Excel::queueImport(new BudgetHolderImport($userId), $request->file('file'));
 
             return response()->json([
                 'message' => 'Импорт запущен',

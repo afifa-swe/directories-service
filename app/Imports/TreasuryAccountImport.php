@@ -14,6 +14,12 @@ use Maatwebsite\Excel\Row;
 class TreasuryAccountImport implements OnEachRow, WithChunkReading, WithHeadingRow, ShouldQueue
 {
     public $queue = 'imports';
+    protected $userId;
+
+    public function __construct($userId = null)
+    {
+        $this->userId = $userId;
+    }
 
     public function onRow(Row $row)
     {
@@ -42,6 +48,8 @@ class TreasuryAccountImport implements OnEachRow, WithChunkReading, WithHeadingR
                 'name' => trim($normalized['name']),
                 'department' => isset($normalized['department']) ? trim($normalized['department']) : null,
                 'currency' => isset($normalized['currency']) ? trim($normalized['currency']) : null,
+                'created_by' => $this->userId ?? null,
+                'updated_by' => $this->userId ?? null,
             ]);
 
             Log::info('TreasuryAccountImport: created model instance', ['account' => $model->account, 'id' => $model->id]);

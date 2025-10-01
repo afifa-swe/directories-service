@@ -14,6 +14,12 @@ use Maatwebsite\Excel\Row;
 class BudgetHolderImport implements OnEachRow, WithChunkReading, WithHeadingRow, ShouldQueue
 {
     public $queue = 'imports';
+    protected $userId;
+
+    public function __construct($userId = null)
+    {
+        $this->userId = $userId;
+    }
 
     public function onRow(Row $row)
     {
@@ -44,6 +50,8 @@ class BudgetHolderImport implements OnEachRow, WithChunkReading, WithHeadingRow,
                 'address' => isset($normalized['address']) ? trim($normalized['address']) : null,
                 'phone' => isset($normalized['phone']) ? trim($normalized['phone']) : null,
                 'responsible' => isset($normalized['responsible']) ? trim($normalized['responsible']) : null,
+                'created_by' => $this->userId ?? null,
+                'updated_by' => $this->userId ?? null,
             ]);
 
             Log::info('BudgetHolderImport: created model instance', ['tin' => $model->tin, 'id' => $model->id]);

@@ -141,7 +141,8 @@ class SwiftCodeController extends Controller
         ]);
 
         try {
-            Excel::queueImport(new SwiftCodeImport, $request->file('file'));
+            $userId = auth()->check() ? auth()->id() : null;
+            Excel::queueImport(new SwiftCodeImport($userId), $request->file('file'));
 
             return response()->json([
                 'message' => 'Импорт запущен',

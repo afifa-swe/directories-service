@@ -14,6 +14,12 @@ use Maatwebsite\Excel\Row;
 class SwiftCodeImport implements OnEachRow, WithChunkReading, WithHeadingRow, ShouldQueue
 {
     public $queue = 'imports';
+    protected $userId;
+
+    public function __construct($userId = null)
+    {
+        $this->userId = $userId;
+    }
 
     public function onRow(Row $row)
     {
@@ -43,6 +49,8 @@ class SwiftCodeImport implements OnEachRow, WithChunkReading, WithHeadingRow, Sh
                 'country' => isset($normalized['country']) ? trim($normalized['country']) : null,
                 'city' => isset($normalized['city']) ? trim($normalized['city']) : null,
                 'address' => isset($normalized['address']) ? trim($normalized['address']) : null,
+                'created_by' => $this->userId ?? null,
+                'updated_by' => $this->userId ?? null,
             ]);
 
             Log::info('SwiftCodeImport: created model instance', ['swift_code' => $model->swift_code, 'id' => $model->id]);

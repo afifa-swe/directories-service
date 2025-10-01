@@ -139,7 +139,8 @@ class TreasuryAccountController extends Controller
         ]);
 
         try {
-            Excel::queueImport(new TreasuryAccountImport, $request->file('file'));
+            $userId = auth()->check() ? auth()->id() : null;
+            Excel::queueImport(new TreasuryAccountImport($userId), $request->file('file'));
 
             return response()->json([
                 'message' => 'Импорт запущен',
