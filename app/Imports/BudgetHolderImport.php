@@ -34,27 +34,32 @@ class BudgetHolderImport implements OnEachRow, WithChunkReading, WithHeadingRow,
         }
 
         Log::info('BudgetHolderImport: normalized row', $normalized);
+        // Accept common CSV header variants: 'inn' -> 'tin'
+        $tin = isset($normalized['tin']) ? trim($normalized['tin']) : (isset($normalized['inn']) ? trim($normalized['inn']) : null);
+        $name = isset($normalized['name']) ? trim($normalized['name']) : null;
 
-        if (empty($normalized['tin']) || empty($normalized['name'])) {
+        if (empty($tin) || empty($name)) {
             Log::warning('BudgetHolderImport: skipping row, missing required fields', $normalized);
             return;
         }
 
         try {
+            // Use the normalized variables we validated above and provide safe defaults
             $model = BudgetHolder::create([
                 'id' => (string) Str::uuid(),
-                'tin' => trim($normalized['tin']),
-                'name' => trim($normalized['name']),
-                'region' => isset($normalized['region']) ? trim($normalized['region']) : null,
-                'district' => isset($normalized['district']) ? trim($normalized['district']) : null,
-                'address' => isset($normalized['address']) ? trim($normalized['address']) : null,
-                'phone' => isset($normalized['phone']) ? trim($normalized['phone']) : null,
-                'responsible' => isset($normalized['responsible']) ? trim($normalized['responsible']) : null,
+                'tin' => $tin,
+                'name' => $name,
+                // These columns are non-nullable in the migration; provide empty string defaults
+                'region' => isset($normalized['region']) && strlen(trim($normalized['region'])) ? trim($normalized['region']) : '',
+                'district' => isset($normalized['district']) && strlen(trim($normalized['district'])) ? trim($normalized['district']) : '',
+                'address' => isset($normalized['address']) && strlen(trim($normalized['address'])) ? trim($normalized['address']) : '',
+                'phone' => isset($normalized['phone']) && strlen(trim($normalized['phone'])) ? trim($normalized['phone']) : '',
+                'responsible' => isset($normalized['responsible']) && strlen(trim($normalized['responsible'])) ? trim($normalized['responsible']) : '',
                 'created_by' => $this->userId ?? null,
                 'updated_by' => $this->userId ?? null,
             ]);
 
-            Log::info('BudgetHolderImport: created model instance', ['tin' => $model->tin, 'id' => $model->id]);
+            Log::info('BudgetHolderImport: created model instance', ['tin' => $model->tin, 'id' => $model->id, 'created_by' => $model->created_by]);
         } catch (\Throwable $e) {
             Log::error('BudgetHolderImport: failed to create model', ['error' => $e->getMessage(), 'row' => $normalized]);
         }
