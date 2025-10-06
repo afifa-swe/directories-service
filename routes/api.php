@@ -41,3 +41,15 @@ Route::middleware(['auth:api'])->group(function () {
     // keep upload in protected group as well if needed
     // Route::post('/upload', [FileUploadController::class, 'store']);
 });
+
+// Temporary debug route (local/debug only): returns total count of BudgetHolder records
+if (app()->environment('local') || config('app.debug')) {
+    Route::get('/debug/budget-holders-count', function () {
+        try {
+            $count = \App\Models\BudgetHolder::count();
+            return response()->json(['count' => $count]);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    });
+}

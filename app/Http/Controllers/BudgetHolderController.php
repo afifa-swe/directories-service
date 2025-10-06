@@ -168,7 +168,6 @@ class BudgetHolderController extends Controller
         ]);
 
         $file = $request->file('file');
-
         $userId = auth()->check() ? auth()->id() : null;
 
         $path = $file->getRealPath();
@@ -177,37 +176,82 @@ class BudgetHolderController extends Controller
             return response()->json(['message' => 'Файл недоступен для чтения', 'success' => false], 400);
         }
 
-        $rows = array_map('str_getcsv', file($path));
-        if (count($rows) <= 1) {
-            return response()->json(['message' => 'Файл не содержит данных', 'success' => false], 400);
+        // Detect delimiter by reading first line
+        $fh = fopen($path, 'r');
+        if ($fh === false) {
+            Log::error('Failed to open file for budget holders', ['path' => $path]);
+            return response()->json(['message' => 'Не удалось открыть файл', 'success' => false], 400);
         }
 
-        $header = array_map(fn($h) => mb_strtolower(trim($h)), $rows[0]);
-        $dataRows = array_slice($rows, 1);
+        $firstLine = fgets($fh);
+        rewind($fh);
 
-        foreach ($dataRows as $row) {
-            // normalize row length to header
-            $row = array_map(fn($c) => is_string($c) ? trim($c) : $c, $row);
-            $row = array_pad($row, count($header), null);
-            $assoc = array_combine($header, $row);
-            if ($assoc === false) {
-                Log::error('BudgetHolder import failed to combine header and row', ['header' => $header, 'row' => $row]);
+        $delimiter = strpos($firstLine, ';') !== false ? ';' : ',';
+
+        $header = [];
+        $assocRows = [];
+        $lineNumber = 0;
+
+        while (($data = fgetcsv($fh, 0, $delimiter)) !== false) {
+            $lineNumber++;
+            if ($lineNumber === 1) {
+                // normalize header: lowercase and trim, also map common alternatives
+                $header = array_map(fn($h) => mb_strtolower(trim($h)), $data);
+                // normalize known synonyms: 'inn' -> 'tin'
+                $header = array_map(function ($h) {
+                    if ($h === 'inn') return 'tin';
+                    return $h;
+                }, $header);
                 continue;
             }
 
-            // Dispatch one job per row to rabbitmq imports queue
+            // normalize row length
+            $data = array_map(fn($c) => is_string($c) ? trim($c) : $c, $data);
+            $data = array_pad($data, count($header), null);
+            $assoc = @array_combine($header, $data);
+            if ($assoc === false) {
+                Log::error('BudgetHolder import failed to combine header and row', ['line' => $lineNumber, 'row' => $data]);
+                continue;
+            }
+
+            // allow CSVs that use 'inn' instead of 'tin' by normalizing here as well
+            if (empty($assoc['tin']) && !empty($assoc['inn'])) {
+                $assoc['tin'] = $assoc['inn'];
+            }
+
+            if (empty($assoc['name']) && empty($assoc['tin'])) {
+                continue;
+            }
+
+            $assocRows[] = $assoc;
+        }
+
+        fclose($fh);
+
+        if (empty($assocRows)) {
+            return response()->json(['message' => 'Не найдено строк с валидными данными', 'success' => false], 400);
+        }
+
+        $chunks = array_chunk($assocRows, 10);
+        foreach ($chunks as $i => $chunk) {
             try {
-                \App\Jobs\ImportBudgetHoldersJob::dispatch($assoc, $userId)
+                \App\Jobs\ImportBudgetHoldersJob::dispatch($chunk, $userId)
                     ->onConnection('rabbitmq')
                     ->onQueue('imports');
+
+                Log::info('Dispatched BudgetHolder chunk to RabbitMQ', ['index' => $i, 'rows' => count($chunk)]);
             } catch (\Throwable $e) {
-                Log::error('Failed to dispatch ImportBudgetHoldersJob', ['error' => $e->getMessage(), 'row' => $assoc]);
+                Log::error('Failed to dispatch ImportBudgetHoldersJob chunk', ['error' => $e->getMessage(), 'chunk_index' => $i]);
             }
         }
 
         return response()->json([
-            'message' => 'Импорт отправлен в очередь',
-            'data' => [],
+            'message' => 'Импорт запущен в очередь RabbitMQ',
+            'data' => [
+                'total_rows' => count($assocRows),
+                'chunks' => count($chunks),
+                'chunk_size' => 10
+            ],
             'timestamp' => now()->toIso8601String(),
             'success' => true,
         ]);
