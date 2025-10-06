@@ -15,54 +15,59 @@ class ImportTreasuryAccountsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    // job handles one row per job
-    protected array $row;
+    // job handles a chunk of rows (array of up to N rows)
+    protected array $rows;
     protected $userId;
 
     // queue name is set on dispatch; avoid defining $queue property here to prevent trait conflicts
 
-    public function __construct(array $row, $userId = null)
+    public function __construct(array $rows, $userId = null)
     {
-        $this->row = $row;
+        // Expect $rows to be an array of associative row arrays
+        $this->rows = $rows;
         $this->userId = $userId;
     }
 
     public function handle()
     {
-        try {
-            // normalize keys to lowercase
-            $normalized = [];
-            foreach ($this->row as $k => $v) {
-                $normalized[mb_strtolower(trim($k))] = is_string($v) ? trim($v) : $v;
+        // Process each row in the chunk independently so one bad row doesn't stop the batch
+        foreach ($this->rows as $rawRow) {
+            try {
+                // normalize keys to lowercase
+                $normalized = [];
+                foreach ($rawRow as $k => $v) {
+                    $normalized[mb_strtolower(trim($k))] = is_string($v) ? trim($v) : $v;
+                }
+
+                // Accept header variants and fallbacks
+                $account = $normalized['account'] ?? ($normalized['account_number'] ?? ($normalized['account_no'] ?? null));
+                $name = $normalized['name'] ?? ($normalized['account_name'] ?? null);
+                $mfo = $normalized['mfo'] ?? ($normalized['bank_code'] ?? ($normalized['bank'] ?? ''));
+                $department = $normalized['department'] ?? ($normalized['dept'] ?? '');
+                $currency = $normalized['currency'] ?? ($normalized['cur'] ?? '');
+
+                if (empty($account) || empty($name)) {
+                    $this->logProblematicRow('missing_required_fields', $normalized);
+                    Log::warning('ImportTreasuryAccountsJob: missing account or name', ['row' => $normalized]);
+                    continue;
+                }
+
+                TreasuryAccount::create([
+                    'account' => $account,
+                    'mfo' => strlen((string)$mfo) ? $mfo : '',
+                    'name' => $name,
+                    'department' => strlen((string)$department) ? $department : '',
+                    'currency' => strlen((string)$currency) ? $currency : '',
+                    'created_by' => $this->userId ?? null,
+                    'updated_by' => $this->userId ?? null,
+                ]);
+
+                Log::info('ImportTreasuryAccountsJob: created treasury account', ['account' => $account]);
+            } catch (\Throwable $e) {
+                Log::error('ImportTreasuryAccountsJob: failed to import row', ['error' => $e->getMessage(), 'row' => $rawRow]);
+                $this->logProblematicRow($e->getMessage(), $rawRow);
+                // continue with next row
             }
-
-            // Accept header variants and fallbacks
-            $account = $normalized['account'] ?? ($normalized['account_number'] ?? ($normalized['account_no'] ?? null));
-            $name = $normalized['name'] ?? ($normalized['account_name'] ?? null);
-            $mfo = $normalized['mfo'] ?? ($normalized['bank_code'] ?? ($normalized['bank'] ?? ''));
-            $department = $normalized['department'] ?? ($normalized['dept'] ?? '');
-            $currency = $normalized['currency'] ?? ($normalized['cur'] ?? '');
-
-            if (empty($account) || empty($name)) {
-                $this->logProblematicRow('missing_required_fields', $normalized);
-                Log::warning('ImportTreasuryAccountsJob: missing account or name', ['row' => $normalized]);
-                return;
-            }
-
-            TreasuryAccount::create([
-                'account' => $account,
-                'mfo' => strlen((string)$mfo) ? $mfo : '',
-                'name' => $name,
-                'department' => strlen((string)$department) ? $department : '',
-                'currency' => strlen((string)$currency) ? $currency : '',
-                'created_by' => $this->userId ?? null,
-                'updated_by' => $this->userId ?? null,
-            ]);
-
-            Log::info('ImportTreasuryAccountsJob: created treasury account', ['account' => $account]);
-        } catch (\Throwable $e) {
-            Log::error('ImportTreasuryAccountsJob: failed to import row', ['error' => $e->getMessage(), 'row' => $this->row]);
-            $this->logProblematicRow($e->getMessage(), $this->row);
         }
     }
 

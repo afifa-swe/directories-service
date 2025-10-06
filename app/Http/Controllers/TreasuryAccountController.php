@@ -24,10 +24,6 @@ class TreasuryAccountController extends Controller
 
         $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        // Optional: wait for background queue to finish importing before returning results.
-        // Usage (optional query params):
-        // - wait_seconds=7 : simple sleep before executing the query
-        // - wait_retries=3&wait_interval=2 : retry query up to 3 times, waiting 2 seconds between attempts until results appear
 
         $waitSeconds = (int) $request->get('wait_seconds', 0);
         $waitRetries = (int) $request->get('wait_retries', 0);
@@ -175,7 +171,6 @@ class TreasuryAccountController extends Controller
             return response()->json(['message' => 'Файл недоступен для чтения', 'success' => false], 400);
         }
 
-        // read first line to detect delimiter
         $fh = fopen($path, 'r');
         if ($fh === false) {
             Log::error('Failed to open treasury accounts file', ['path' => $path]);
@@ -224,28 +219,34 @@ class TreasuryAccountController extends Controller
 
         $sleepSeconds = (int) env('TREASURY_IMPORT_SLEEP_SECONDS', 1);
 
-        foreach (array_chunk($rows, 10) as $chunk) {
-            foreach ($chunk as $row) {
-                try {
-                    \App\Jobs\ImportTreasuryAccountsJob::dispatch($row, $userId)
-                        ->onConnection('rabbitmq')
-                        ->onQueue('imports');
+        $chunks = array_chunk($rows, 10);
+        $dispatched = 0;
 
-                    Log::info('Dispatched ImportTreasuryAccountsJob', ['row' => $row]);
-                } catch (\Throwable $e) {
-                    Log::error('Failed to dispatch ImportTreasuryAccountsJob', ['error' => $e->getMessage(), 'row' => $row]);
-                }
+        foreach ($chunks as $chunk) {
+            try {
+                // dispatch one job for the whole chunk (array of rows)
+                \App\Jobs\ImportTreasuryAccountsJob::dispatch($chunk, $userId)
+                    ->onConnection('rabbitmq')
+                    ->onQueue('imports');
 
-                // delay between dispatches (configurable)
-                if ($sleepSeconds > 0) {
-                    sleep($sleepSeconds);
-                }
+                $dispatched++;
+                Log::info('Dispatched ImportTreasuryAccountsJob (chunk)', ['count' => count($chunk)]);
+            } catch (\Throwable $e) {
+                Log::error('Failed to dispatch ImportTreasuryAccountsJob (chunk)', ['error' => $e->getMessage(), 'chunk_count' => count($chunk)]);
+            }
+
+            if ($sleepSeconds > 0) {
+                sleep($sleepSeconds);
             }
         }
 
         return response()->json([
             'message' => 'Импорт поставлен в очередь',
-            'data' => ['total_rows' => count($rows)],
+            'data' => [
+                'total_rows' => count($rows),
+                'queued_jobs' => $dispatched,
+                'chunk_size' => 10
+            ],
             'timestamp' => now()->toIso8601String(),
             'success' => true,
         ]);

@@ -203,14 +203,12 @@ public function import(Request $request)
     foreach ($dataRows as $row) {
         $lineNumber++;
 
-        // trim possible BOM and whitespace on each cell
         $row = array_map(fn($c) => is_string($c) ? trim($c) : $c, $row);
 
         $headerCount = count($header);
         $rowCount = count($row);
 
         if ($rowCount !== $headerCount) {
-            // Try to detect empty/blank trailing line
             $isAllEmpty = true;
             foreach ($row as $cell) {
                 if ($cell !== null && $cell !== '') {
@@ -229,12 +227,10 @@ public function import(Request $request)
                 'all_empty' => $isAllEmpty,
             ]);
 
-            // If the row is entirely empty (common at EOF), just skip it silently
             if ($isAllEmpty) {
                 continue;
             }
 
-            // Pad or truncate row to header size to avoid array_combine mismatch
             if ($rowCount < $headerCount) {
                 $row = array_pad($row, $headerCount, null);
             } else {
