@@ -34,7 +34,6 @@ class TreasuryAccountImport implements OnEachRow, WithChunkReading, WithHeadingR
         }
 
         Log::info('TreasuryAccountImport: normalized row', $normalized);
-        // Accept common CSV header variants: 'account_number' -> 'account', 'account_name' -> 'name'
         $account = isset($normalized['account']) ? trim($normalized['account']) : (isset($normalized['account_number']) ? trim($normalized['account_number']) : null);
         $name = isset($normalized['name']) ? trim($normalized['name']) : (isset($normalized['account_name']) ? trim($normalized['account_name']) : null);
 

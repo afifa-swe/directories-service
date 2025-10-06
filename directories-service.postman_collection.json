@@ -66,7 +66,7 @@
           "request": {
             "method": "GET",
             "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
-            "url": { "raw": "{{baseUrl}}/api/swift", "host": ["{{baseUrl}}"], "path": ["api", "swift"] }
+            "url": { "raw": "{{baseUrl}}/api/swift", "host": ["{{baseUrl}}"], "path": ["api", "swift"], "query": [ { "key": "page", "value": "1" }, { "key": "per_page", "value": "25" } ] }
           }
         },
         {
@@ -144,7 +144,7 @@
           "request": {
             "method": "GET",
             "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
-            "url": { "raw": "{{baseUrl}}/api/budget-holders", "host": ["{{baseUrl}}"], "path": ["api", "budget-holders"] }
+            "url": { "raw": "{{baseUrl}}/api/budget-holders", "host": ["{{baseUrl}}"], "path": ["api", "budget-holders"], "query": [ { "key": "page", "value": "1" }, { "key": "per_page", "value": "25" } ] }
           }
         },
         {
@@ -191,7 +191,7 @@
             ],
             "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "test_beneficiaries.csv" } ] },
             "url": { "raw": "{{baseUrl}}/api/beneficiaries/import", "host": ["{{baseUrl}}"], "path": ["api", "beneficiaries", "import"] },
-            "description": "Curl example:\n\ncurl -X POST '{{baseUrl}}/api/beneficiaries/import' -H 'Authorization: Bearer {ACCESS_TOKEN}' -H 'Accept: application/json' -F 'file=@/path/to/test_beneficiaries.csv'"
+            "description": "Curl example:\n\ncurl -X POST '{{baseUrl}}/api/budget-holders/import' -H 'Authorization: Bearer {ACCESS_TOKEN}' -H 'Accept: application/json' -F 'file=@/path/to/test_beneficiaries.csv'"
           },
           "event": [
             {
@@ -222,7 +222,7 @@
           "request": {
             "method": "GET",
             "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
-            "url": { "raw": "{{baseUrl}}/api/treasury-accounts", "host": ["{{baseUrl}}"], "path": ["api", "treasury-accounts"] }
+            "url": { "raw": "{{baseUrl}}/api/treasury-accounts", "host": ["{{baseUrl}}"], "path": ["api", "treasury-accounts"], "query": [ { "key": "page", "value": "1" }, { "key": "per_page", "value": "25" } ] }
           }
         },
         {
@@ -269,7 +269,7 @@
             ],
             "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "test_treasury.csv" } ] },
             "url": { "raw": "{{baseUrl}}/api/treasury/import", "host": ["{{baseUrl}}"], "path": ["api", "treasury", "import"] },
-            "description": "Curl example:\n\ncurl -X POST '{{baseUrl}}/api/treasury/import' -H 'Authorization: Bearer {ACCESS_TOKEN}' -H 'Accept: application/json' -F 'file=@/path/to/test_treasury.csv'"
+            "description": "Curl example:\n\ncurl -X POST '{{baseUrl}}/api/treasury-accounts/import' -H 'Authorization: Bearer {ACCESS_TOKEN}' -H 'Accept: application/json' -F 'file=@/path/to/test_treasury.csv'"
           },
           "event": [
             {

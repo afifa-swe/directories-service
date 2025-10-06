@@ -49,10 +49,14 @@ class TreasuryAccountController extends Controller
             ->when($request->filled('account'), fn($q) => $q->where('account', $request->account))
             ->orderBy($sort, $direction);
 
+        $page = (int) $request->get('page', 1);
+        $perPage = (int) $request->get('per_page', 25);
+        $perPage = max(20, min($perPage, 100));
+
         if ($waitRetries > 0) {
             $attempt = 0;
             do {
-                $items = $query->paginate($request->get('per_page', 20));
+                $items = $query->paginate($perPage, ['*'], 'page', $page);
                 if ($items->total() > 0) {
                     break;
                 }

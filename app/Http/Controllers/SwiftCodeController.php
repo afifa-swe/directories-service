@@ -29,11 +29,6 @@ class SwiftCodeController extends Controller
 
         $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        // Optional: wait for background queue to finish importing before returning results.
-        // Usage (optional query params):
-        // - wait_seconds=7 : simple sleep before executing the query
-        // - wait_retries=3&wait_interval=2 : retry query up to 3 times, waiting 2 seconds between attempts until results appear
-
         $waitSeconds = (int) $request->get('wait_seconds', 0);
         $waitRetries = (int) $request->get('wait_retries', 0);
         $waitInterval = max(1, (int) $request->get('wait_interval', 2));
@@ -59,10 +54,14 @@ class SwiftCodeController extends Controller
             ->when($request->filled('bank_name'), fn($q) => $q->where('bank_name', $request->bank_name))
             ->orderBy($sort, $direction);
 
+        $page = (int) $request->get('page', 1);
+        $perPage = (int) $request->get('per_page', 25);
+        $perPage = max(20, min($perPage, 100));
+
         if ($waitRetries > 0) {
             $attempt = 0;
             do {
-                $items = $query->paginate($request->get('per_page', 20));
+                $items = $query->paginate($perPage, ['*'], 'page', $page);
                 if ($items->total() > 0) {
                     break;
                 }

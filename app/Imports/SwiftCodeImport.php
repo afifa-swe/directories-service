@@ -25,10 +25,8 @@ class SwiftCodeImport implements OnEachRow, WithChunkReading, WithHeadingRow, Sh
     {
         $row = $row->toArray();
 
-        // Log raw row for debugging
         Log::info('SwiftCodeImport: raw row', $row);
 
-        // Normalize keys to lower-case
         $normalized = [];
         foreach ($row as $key => $value) {
             $normalized[strtolower($key)] = $value;
