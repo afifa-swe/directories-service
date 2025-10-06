@@ -39,6 +39,10 @@ class ImportSwiftCodesJob implements ShouldQueue
 
     public function handle()
     {
+        // Для демонстрации: делаем паузу, чтобы сообщение висело в очереди
+        // и было видно в веб-интерфейсе RabbitMQ. Удалите/уменьшите при необходимости.
+        sleep(30);
+
         // Log payload (careful: may be large) and start
         try {
             Log::debug('ImportSwiftCodesJob payload', ['chunk' => $this->chunk]);
