@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\Log;
 class ImportBudgetHoldersJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    // compatibility: older queued payloads might have referenced $row; keep nullable to avoid uninitialized typed property errors
     protected ?array $row = null;
-    // defaults to make sure unserialized/old payloads get safe values
     protected array $chunk = [];
     protected $userId = null;
 

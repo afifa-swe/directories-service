@@ -1,0 +1,5 @@
+account,account_name,mfo,department,currency
+123456789000,Company A,00454,Dept 1,RUB
+123456789001,Company B,00455,Dept 2,RUB
+, , , ,
+123456789002,Company C,00456,,USD

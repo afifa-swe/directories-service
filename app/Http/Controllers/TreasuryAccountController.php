@@ -166,25 +166,89 @@ class TreasuryAccountController extends Controller
             'file' => 'required|file|mimes:csv,txt|max:5120',
         ]);
 
-        try {
-            $userId = auth()->check() ? auth()->id() : null;
-            Excel::queueImport(new TreasuryAccountImport($userId), $request->file('file'));
+        $file = $request->file('file');
+        $userId = auth()->check() ? auth()->id() : null;
 
-            return response()->json([
-                'message' => 'Импорт запущен',
-                'data' => [],
-                'timestamp' => now()->toIso8601String(),
-                'success' => true,
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('TreasuryAccount import failed to queue', ['error' => $e->getMessage()]);
-
-            return response()->json([
-                'message' => 'Ошибка при запуске импорта',
-                'data' => [],
-                'timestamp' => now()->toIso8601String(),
-                'success' => false,
-            ], 500);
+        $path = $file->getRealPath();
+        if (!is_readable($path)) {
+            Log::error('TreasuryAccount import file not readable', ['path' => $path]);
+            return response()->json(['message' => 'Файл недоступен для чтения', 'success' => false], 400);
         }
+
+        // read first line to detect delimiter
+        $fh = fopen($path, 'r');
+        if ($fh === false) {
+            Log::error('Failed to open treasury accounts file', ['path' => $path]);
+            return response()->json(['message' => 'Не удалось открыть файл', 'success' => false], 400);
+        }
+
+        $firstLine = fgets($fh);
+        rewind($fh);
+        $delimiter = strpos($firstLine, ';') !== false ? ';' : ',';
+
+        $header = [];
+        $rows = [];
+        $line = 0;
+        while (($data = fgetcsv($fh, 0, $delimiter)) !== false) {
+            $line++;
+            if ($line === 1) {
+                $header = array_map(fn($h) => mb_strtolower(trim($h)), $data);
+                continue;
+            }
+
+            // trim values and skip empty rows
+            $data = array_map(fn($c) => is_string($c) ? trim($c) : $c, $data);
+            // pad/truncate to header length
+            $data = array_pad($data, count($header), null);
+            $assoc = @array_combine($header, $data);
+            if ($assoc === false) {
+                Log::warning('TreasuryAccount import: header/row mismatch', ['line' => $line, 'row' => $data]);
+                continue;
+            }
+
+            // skip rows where all fields are empty
+            $allEmpty = true;
+            foreach ($assoc as $v) {
+                if (!is_null($v) && $v !== '') { $allEmpty = false; break; }
+            }
+            if ($allEmpty) continue;
+
+            $rows[] = $assoc;
+        }
+
+        fclose($fh);
+
+        if (empty($rows)) {
+            return response()->json(['message' => 'Не найдено строк с данными', 'success' => false], 400);
+        }
+
+        $sleepSeconds = (int) env('TREASURY_IMPORT_SLEEP_SECONDS', 1);
+
+        foreach (array_chunk($rows, 10) as $chunk) {
+            foreach ($chunk as $row) {
+                try {
+                    \App\Jobs\ImportTreasuryAccountsJob::dispatch($row, $userId)
+                        ->onConnection('rabbitmq')
+                        ->onQueue('imports');
+
+                    Log::info('Dispatched ImportTreasuryAccountsJob', ['row' => $row]);
+                } catch (\Throwable $e) {
+                    Log::error('Failed to dispatch ImportTreasuryAccountsJob', ['error' => $e->getMessage(), 'row' => $row]);
+                }
+
+                // delay between dispatches (configurable)
+                if ($sleepSeconds > 0) {
+                    sleep($sleepSeconds);
+                }
+            }
+        }
+
+        return response()->json([
+            'message' => 'Импорт поставлен в очередь',
+            'data' => ['total_rows' => count($rows)],
+            'timestamp' => now()->toIso8601String(),
+            'success' => true,
+        ]);
+
     }
 }
