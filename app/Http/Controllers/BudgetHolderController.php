@@ -167,25 +167,49 @@ class BudgetHolderController extends Controller
             'file' => 'required|file|mimes:csv,txt|max:5120',
         ]);
 
-        try {
-            $userId = auth()->check() ? auth()->id() : null;
-            Excel::queueImport(new BudgetHolderImport($userId), $request->file('file'));
+        $file = $request->file('file');
 
-            return response()->json([
-                'message' => 'Импорт запущен',
-                'data' => [],
-                'timestamp' => now()->toIso8601String(),
-                'success' => true,
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('BudgetHolder import failed to queue', ['error' => $e->getMessage()]);
+        $userId = auth()->check() ? auth()->id() : null;
 
-            return response()->json([
-                'message' => 'Ошибка при запуске импорта',
-                'data' => [],
-                'timestamp' => now()->toIso8601String(),
-                'success' => false,
-            ], 500);
+        $path = $file->getRealPath();
+        if (!is_readable($path)) {
+            Log::error('BudgetHolder import file not readable', ['path' => $path]);
+            return response()->json(['message' => 'Файл недоступен для чтения', 'success' => false], 400);
         }
+
+        $rows = array_map('str_getcsv', file($path));
+        if (count($rows) <= 1) {
+            return response()->json(['message' => 'Файл не содержит данных', 'success' => false], 400);
+        }
+
+        $header = array_map(fn($h) => mb_strtolower(trim($h)), $rows[0]);
+        $dataRows = array_slice($rows, 1);
+
+        foreach ($dataRows as $row) {
+            // normalize row length to header
+            $row = array_map(fn($c) => is_string($c) ? trim($c) : $c, $row);
+            $row = array_pad($row, count($header), null);
+            $assoc = array_combine($header, $row);
+            if ($assoc === false) {
+                Log::error('BudgetHolder import failed to combine header and row', ['header' => $header, 'row' => $row]);
+                continue;
+            }
+
+            // Dispatch one job per row to rabbitmq imports queue
+            try {
+                \App\Jobs\ImportBudgetHoldersJob::dispatch($assoc, $userId)
+                    ->onConnection('rabbitmq')
+                    ->onQueue('imports');
+            } catch (\Throwable $e) {
+                Log::error('Failed to dispatch ImportBudgetHoldersJob', ['error' => $e->getMessage(), 'row' => $assoc]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Импорт отправлен в очередь',
+            'data' => [],
+            'timestamp' => now()->toIso8601String(),
+            'success' => true,
+        ]);
     }
 }
