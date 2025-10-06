@@ -24,6 +24,19 @@ class BudgetHolderController extends Controller
 
         $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
 
+        // Optional: wait for background queue to finish importing before returning results.
+        // Usage (optional query params):
+        // - wait_seconds=7 : simple sleep before executing the query
+        // - wait_retries=3&wait_interval=2 : retry query up to 3 times, waiting 2 seconds between attempts until results appear
+
+        $waitSeconds = (int) $request->get('wait_seconds', 0);
+        $waitRetries = (int) $request->get('wait_retries', 0);
+        $waitInterval = max(1, (int) $request->get('wait_interval', 2));
+
+        if ($waitSeconds > 0) {
+            sleep($waitSeconds);
+        }
+
         $query = BudgetHolder::query()
             ->when(auth()->check(), fn($q) => $q->where('created_by', auth()->id()))
             ->when($request->search, function ($q) use ($request) {
@@ -41,7 +54,22 @@ class BudgetHolderController extends Controller
             ->when($request->filled('tin'), fn($q) => $q->where('tin', $request->tin))
             ->orderBy($sort, $direction);
 
-        $items = $query->paginate($request->get('per_page', 20));
+        if ($waitRetries > 0) {
+            $attempt = 0;
+            do {
+                $items = $query->paginate($request->get('per_page', 20));
+                if ($items->total() > 0) {
+                    break;
+                }
+                $attempt++;
+                if ($attempt >= $waitRetries) {
+                    break;
+                }
+                sleep($waitInterval);
+            } while (true);
+        } else {
+            $items = $query->paginate($request->get('per_page', 20));
+        }
 
         return response()->json([
             'message' => 'Успешно',
